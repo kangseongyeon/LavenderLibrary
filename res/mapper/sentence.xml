@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="sentence">
+	
+ 
+  <select id="getAllSentences" resultMap="SentenceMap" >
+  select * from one_sentence
+  </select>
+  
+  
+  <insert id="insertSentence" parameterType="SentenceVO">
+		  	
+		 insert INTO one_sentence 
+		(
+		SEN_NO,
+		SEN_TITLE,
+		SEN_CONTENT,
+		MEM_ID,
+		BOOK_TITLE
+		) 
+		values 
+		(
+		(SELECT NVL(MAX(SEN_NO),0)+1 FROM one_sentence),
+		#{senTitle},
+		#{senContent},
+		#{memId},
+		#{bookTitle}
+		)
+  </insert>
+  
+  
+  <select id="detailSentence" resultMap="SentenceMap">
+  
+  	select * from one_sentence where SEN_NO=#{senNo}
+  </select>
+  
+  
+  <update id="updateSentence" parameterType="SentenceVO">
+    update one_sentence set SEN_TITLE=#{senTitle}, SEN_CONTENT=#{senContent}
+	where SEN_NO=#{senNo}
+  
+  </update>
+  
+  
+  <delete id="deleteSentence" parameterType="String">
+  delete from one_sentence where SEN_NO=#{senNo}
+  
+  </delete>
+  
+  
+  <select id="searchTitleSentence" resultMap="SentenceMap">
+  select * from one_sentence where SEN_TITLE like '%'|| #{senTitle} ||'%'
+  
+  </select>
+  
+  
+  <select id="searchContentSentence" resultMap="SentenceMap">
+   select * from one_sentence where SEN_CONTENT like '%'|| #{senContent} ||'%'
+  
+  </select>
+  
+  
+  <select id="searchMemSentense" resultMap="SentenceMap">
+  select * from one_sentence where mem_id=#{memId}
+  
+  </select>
+  
+  
+  <select id="searchBookSentense" resultMap="SentenceMap">
+  select * from one_sentence where BOOK_TITLE=#{bookTitle}
+  
+  </select>
+  
+  	<!-- 전체 글 갯수 조회 -->
+  	<select id="countList" resultType="int">
+  		SELECT COUNT(*) FROM one_sentence
+  	</select>
+
+
+	<!-- 페이지 별 리스트 출력 -->
+  	<select id="boardList" parameterType="map" resultMap="SentenceMap" >
+  		select A.* from(
+  			select ROWNUM AS RNUM, B.* from(
+  				select * from one_sentence
+				order by SEN_NO DESC
+			)B
+		<![CDATA[
+			where ROWNUM <= #{end}
+		)A
+		where A.rnum >= #{start}
+		]]>
+  	</select>
+  
+
+  
+  
+  
+	
+	
+	<resultMap type="SentenceVO" id="SentenceMap">
+
+		
+		<id property="senNo" column="SEN_NO"/>
+		<result property="senTitle" column="SEN_TITLE"/>
+		<result property="senDate" column="SEN_DATE"/>
+		<result property="senContent" column="SEN_CONTENT"/>
+		<result property="memId" column="MEM_ID"/>
+		<result property="bookTitle" column="BOOK_TITLE"/>
+	
+	</resultMap>	
+
+
+</mapper>

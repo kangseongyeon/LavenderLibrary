@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="book">
+
+	<resultMap type="kr.or.ddit.book.vo.BookVO" id="bookMap">
+		<id property="bookId" column="BOOK_ID" />
+		<result property="bookName" column="BOOK_NAME" />
+		<result property="bookWriter" column="BOOK_WRITER" />
+		<result property="bookPublisher" column="BOOK_PUBLIISHER" />
+		<result property="bookRentalYN" column="BOOK_RENTYN" />
+		<result property="delYN" column="DELYN" />
+		<result property="bookCategory" column="BOOK_CATEGORY" />
+		<result property="regdt" column="BOOK_PUBLIC_DATE" />
+		<result property="atchFileId" column="ATCH_FILE_ID" />
+		<result property="viewCnt" column="VIEW_CNT" />
+	</resultMap>
+
+	<select id="selectAllBook"
+		resultType="kr.or.ddit.book.vo.BookVO" resultMap="bookMap">
+		select * from book
+	</select>
+
+	<insert id="insertBook"
+		parameterType="kr.or.ddit.book.vo.BookVO">
+		insert into book
+		VALUES(book_SEQ.nextval,#{bookName},#{bookWriter},#{bookPublisher},sysdate,'Y','N',#{bookCategory},#{atchFileId,
+		jdbcType=VARCHAR},0)
+	</insert>
+
+	<select id="getBook" resultType="kr.or.ddit.book.vo.BookVO"
+		resultMap="bookMap">
+		select * from book
+		where book_id=#{bookId}
+	</select>
+
+	<delete id="deleteBook" parameterType="String">
+		delete from book where
+		book_id=#{bookId}
+	</delete>
+
+	<update id="updateBook"
+		parameterType="kr.or.ddit.book.vo.BookVO">
+		update book set BOOK_NAME=#{bookName},
+		BOOK_WRITER=#{bookWriter}, BOOK_PUBLIISHER=#{bookPublisher},
+		BOOK_CATEGORY=#{bookCategory}, ATCH_FILE_ID=#{atchFileId}
+		where book_id=#{bookId}
+	</update>
+	<update id="updateViewCnt" parameterType="String">
+		update book set view_cnt=view_cnt+1 where book_id=#{bookId}
+	</update>
+
+	<select id="searchBook" resultType="kr.or.ddit.book.vo.BookVO"
+		resultMap="bookMap">
+		select * from book
+		<where>
+			<if test='bookName != null and bookName != ""'>
+				BOOK_NAME LIKE '%'|| #{bookName} ||'%'
+			</if>
+			<if test='bookWriter != null and bookWriter != ""'>
+				OR BOOK_WRITER LIKE '%'|| #{bookWriter} ||'%'
+			</if>
+		</where>
+	</select>
+
+	<select id="reservChk" resultType="int" parameterType="String">
+		select count(*) from reservation
+		where book_id=#{bookId}
+	</select>
+
+	<select id="getReserv" resultType="kr.or.ddit.book.vo.ReservVO"
+		parameterType="kr.or.ddit.book.vo.ReservVO">
+		select rev_no as revNo, mem_id as memId, book_id as bookId, rev_date as
+		revDate from reservation
+		where mem_id=#{memId} and book_id=#{bookId}
+	</select>
+
+
+	<insert id="insertReserv"
+		parameterType="kr.or.ddit.book.vo.ReservVO">
+		insert into reservation
+		values(book_SEQ.nextval,#{memId},#{bookId},sysdate)
+	</insert>
+
+	<delete id="deleteReserv" parameterType="String">
+		delete from reservation
+		where rev_no=#{revNo}
+	</delete>
+
+	<select id="getAllReserv" resultType="kr.or.ddit.book.vo.ReservVO">
+    SELECT 
+        r1.rev_no as revNo, 
+        r1.book_id as bookId, 
+        b.book_name as bookName, 
+        r1.mem_id as memId, 
+        r1.rev_date as revDate,
+        (SELECT COUNT(*) FROM reservation r2 WHERE r2.book_id = r1.book_id AND r2.rev_no &lt; r1.rev_no) + 1 as waitCount
+    FROM 
+        reservation r1 
+    JOIN 
+        book b ON r1.book_id = b.book_id
+    ORDER BY 
+        r1.rev_no;
+</select>
+
+	<select id="getMemReserv" parameterType="string" resultType="kr.or.ddit.book.vo.ReservVO">
+    SELECT 
+        r1.rev_no AS revNo, 
+        r1.mem_id AS memId, 
+        r1.book_id AS bookId, 
+        b.book_name AS bookName, 
+        r1.rev_date AS revDate,
+        (SELECT COUNT(*) FROM reservation r2 WHERE r2.book_id = r1.book_id AND r2.rev_no &lt; r1.rev_no) + 1 AS waitCount
+    FROM 
+        reservation r1
+    JOIN 
+        book b ON r1.book_id = b.book_id
+    WHERE 
+        r1.mem_id = #{memId}
+    ORDER BY 
+        r1.rev_no
+</select>
+
+	<insert id="insertWishlist"
+		parameterType="kr.or.ddit.book.vo.WishlistVO">
+		insert into wishlist
+		values(wishlist_seq.nextval,#{memId},#{bookId})
+	</insert>
+
+	<delete id="deleteWishlist" parameterType="String">
+		delete from wishlist
+		where wishlist_no=#{wishlistNo}
+	</delete>
+
+	<select id="getWishlist"
+		resultType="kr.or.ddit.book.vo.WishlistVO"
+		parameterType="kr.or.ddit.book.vo.WishlistVO">
+		select w.wishlist_no as wishlistNo, w.mem_id as memId, w.book_id as bookId,
+		b.book_name as bookName
+		from wishlist w
+		join book b on w.book_id = b.book_id
+		where w.mem_id = #{memId} and w.book_id = #{bookId}
+	</select>
+
+	<select id="getMemWishlist" parameterType="String"
+		resultType="kr.or.ddit.book.vo.WishlistVO">
+		select w.wishlist_no as wishlistNo, w.mem_id as memId, w.book_id as bookId,
+		b.book_name as bookName
+		from wishlist w
+		join book b on w.book_id = b.book_id
+		where w.mem_id = #{memId}
+		order by wishlistNo
+	</select>
+
+	<insert id="insertRental" parameterType="kr.or.ddit.book.vo.RentalVO">
+    INSERT INTO RENTAL (RENTAL_NO, MEM_ID, BOOK_ID, RENTAL_DATE, RETURN_DATE, RETURN_YN, WARNYN)
+VALUES (RENTAL_SEQ.NEXTVAL, #{memId}, #{bookId}, SYSDATE, SYSDATE + 14, 'N', 'N')
+	</insert>
+
+	<select id="getAllRental"
+		resultType="kr.or.ddit.book.vo.RentalVO">
+		select r.rental_no as rentalNo, r.mem_id as memId, r.book_id as bookId,
+		r.rental_date as rentalDate, r.return_date as returnDate, r.return_yn
+		as returnYn, b.book_name as bookName
+		from rental r
+		join book b on r.book_id = b.book_id
+	</select>
+
+	<select id="getMemRental" parameterType="String"
+		resultType="kr.or.ddit.book.vo.RentalVO">
+		select r.rental_no as rentalNo, r.mem_id as memId, r.book_id as bookId,
+		r.rental_date as rentalDate,
+		r.return_date as returnDate, r.return_yn as returnYn, b.book_name as bookName
+		from rental r
+		join book b on r.book_id = b.book_id
+		where r.mem_Id = #{memId}
+	</select>
+
+	<select id="getOverRental"
+		resultType="kr.or.ddit.book.vo.RentalVO">
+		select r.rental_no as rentalNo, r.mem_id as memId, r.book_id as bookId,
+		r.rental_date as rentalDate,
+		r.return_date as returnDate, r.return_yn as returnYn, b.book_name as bookName,
+		r.warnyn as warnYn
+		from rental r
+		join book b on r.book_id = b.book_id
+		where r.return_yn = 'N' and r.return_date &lt; sysdate
+	</select>
+
+	<update id="updateWarnYn">
+		UPDATE rental
+		SET WARNYN = 'Y'
+		WHERE MEM_ID IN (
+		SELECT DISTINCT r.MEM_ID
+		FROM rental r
+		WHERE r.RETURN_YN = 'N'
+		AND (SYSDATE - r.RETURN_DATE) > 0
+		AND r.WARNYN = 'N'
+		)
+		AND RETURN_YN = 'N'
+		AND WARNYN = 'N'
+	</update>
+
+	<update id="updateRental" parameterType="String">
+
+		update rental set RETURN_YN='Y' where rental_no=#{rentalNo}
+	</update>
+	
+	<update id="updateBookRental" parameterType="String">
+		update book set book_rentyn='Y' where book_id=#{bookId}
+	</update>
+	
+	
+	<select id="getPopularList" resultType="kr.or.ddit.book.vo.ReservVO" resultMap="bookMap">
+     	SELECT * FROM BOOK WHERE VIEW_CNT &gt; = 100
+     </select>
+     
+     <select id="getNewList" resultType="kr.or.ddit.book.vo.ReservVO" resultMap="bookMap">
+     	SELECT * FROM BOOK WHERE BOOK_PUBLIC_DATE &gt;= ADD_MONTHS(SYSDATE, -1)
+     	AND BOOK_PUBLIC_DATE &lt;= SYSDATE ORDER BY BOOK_PUBLIC_DATE DESC
+     </select>
+
+
+	<!-- 전체 글 갯수 조회 -->
+	<select id="countList" resultType="int">
+		SELECT COUNT(*) FROM book
+	</select>
+
+
+	<!-- 페이지 별 리스트 출력 -->
+	<select id="boardList" parameterType="map" resultType="kr.or.ddit.book.vo.BookVO" resultMap="bookMap">
+		select A.* from(
+		select ROWNUM AS RNUM, B.* from(
+		select * from book
+		order by book_id DESC
+		)B
+		<![CDATA[
+			where ROWNUM <= #{end}
+		)A
+		where A.rnum >= #{start}
+		]]>
+	</select>
+	
+	     <!-- 대여 도서 개수 조회 -->
+     <select id="rentalCountList" resultType="int">
+     select COUNT(*)
+     from rental r
+    join book b on r.book_id = b.book_id
+     </select>
+
+
+   <!-- 대여 도서 페이지 별 리스트 출력 -->
+     <select id="rentalBoardList" parameterType="map" resultType="kr.or.ddit.book.vo.RentalVO" >
+        select A.* from( 
+           select ROWNUM AS RNUM, B.* from(
+           select r.rental_no as rentalNo, r.mem_id as memId, r.book_id as bookId,
+          r.rental_date as rentalDate, r.return_date as returnDate, r.return_yn as returnYn, b.book_name as bookName
+          from rental r join book b on r.book_id = b.book_id order by rentalNo desc 
+           )B
+           <![CDATA[
+         where ROWNUM <= #{end}
+      )A
+      where A.rnum >= #{start}
+      ]]>
+     </select>
+     
+     <!-- 연체 도서 개수 조회 -->
+     <select id="overRentalCountList" resultType="int">
+    select count(*)
+    from rental r
+    join book b on r.book_id = b.book_id
+    where r.return_yn = 'N' and r.return_date &lt; sysdate
+     </select>
+
+
+   <!-- 연체 도서 페이지 별 리스트 출력 -->
+     <select id="overRentalBoardList" parameterType="map" resultType="kr.or.ddit.book.vo.RentalVO" >
+        select A.* from( 
+           select ROWNUM AS RNUM, B.* from(
+               select r.rental_no as rentalNo, r.mem_id as memId, r.book_id as bookId, r.rental_date as rentalDate,
+             r.return_date as returnDate, r.return_yn as returnYn, b.book_name as bookName, r.warnyn as warnYn
+             from rental r
+             join book b on r.book_id = b.book_id
+             where r.return_yn = 'N' and r.return_date &lt; sysdate 
+          order by rentalNo desc 
+           )B
+           <![CDATA[
+         where ROWNUM <= #{end}
+      )A
+      where A.rnum >= #{start}
+      ]]>
+     </select>
+     
+          
+      <!-- 예약 도서 개수 조회 -->
+     <select id="reservCountList" resultType="int">
+        select count(*) from
+        (SELECT r1.rev_no as revNo, r1.book_id as bookId, b.book_name as bookName,
+            r1.mem_id as memId, r1.rev_date as revDate,
+            ( SELECT COUNT(*) FROM reservation r2 WHERE r2.rev_no &lt; r1.rev_no )
+            as waitCount
+         FROM reservation r1 JOIN book b ON r1.book_id = b.book_id
+       )
+     </select>
+
+
+   <!-- 예약 도서 페이지 별 리스트 출력 -->
+     <select id="reservBoardList" parameterType="map" resultType="kr.or.ddit.book.vo.ReservVO">
+    select A.* from( 
+        select ROWNUM AS RNUM, B.* from(
+            SELECT 
+                r1.rev_no as revNo, 
+                r1.book_id as bookId, 
+                b.book_name as bookName,
+                r1.mem_id as memId, 
+                r1.rev_date as revDate,
+                (SELECT COUNT(*) FROM reservation r2 WHERE r2.book_id = r1.book_id AND r2.rev_no &lt; r1.rev_no) + 1 as waitCount
+            FROM 
+                reservation r1 
+            JOIN 
+                book b ON r1.book_id = b.book_id
+            ORDER BY 
+                r1.rev_no DESC
+        )B
+        <![CDATA[
+        where ROWNUM <= #{end}
+        )A
+        where A.rnum >= #{start}
+        ]]>
+</select>
+     
+     
+     <!-- 신작 도서 개수 조회 -->
+     <select id="newCountList" resultType="int">
+        SELECT count(*) FROM BOOK WHERE BOOK_PUBLIC_DATE &gt; = ADD_MONTHS(SYSDATE, -1) AND BOOK_PUBLIC_DATE &lt; = SYSDATE
+     </select>
+
+
+   <!-- 신작 도서 페이지 별 리스트 출력 -->
+     <select id="newBoardList" parameterType="map" resultMap="bookMap" >
+		select A.* from(
+		select ROWNUM AS RNUM, B.* from(
+        SELECT * FROM BOOK WHERE BOOK_PUBLIC_DATE &gt; = ADD_MONTHS(SYSDATE, -1) AND BOOK_PUBLIC_DATE  &lt; = SYSDATE
+		order by book_id DESC
+           )B
+           <![CDATA[
+         where ROWNUM <= #{end}
+      )A
+      where A.rnum >= #{start}
+      ]]>
+     </select>
+     
+
+</mapper>

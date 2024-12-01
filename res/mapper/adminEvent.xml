@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="adminEvent">
+
+   <resultMap type="kr.or.ddit.vo.EventVO" id="eventMap">
+      <id property="eventNo" column="event_no" />
+      <result property="eventType" column="event_type" />
+      <result property="eventName" column="event_name" />
+      <result property="eventDateStr" column="event_date_str" />
+      <result property="eventDateEnd" column="event_date_end" />
+      <result property="eventRegDateStr" column="event_reg_date_str" />
+      <result property="eventRegDateEnd" column="event_reg_date_end" />
+      <result property="eventPlace" column="event_place" />
+      <result property="eventPeople" column="event_people" />
+      <result property="atchFileId" column="ATCH_FILE_ID" />
+      <result property="adminId" column="ADM_ID" />
+      <result property="eventContent" column="EVENT_CONTENT" />
+
+   </resultMap>
+
+
+   <!-- -->
+   <insert id="insertEvent" parameterType="kr.or.ddit.vo.EventVO">
+      insert into event
+      (event_no, event_type, event_name, event_date_str, event_date_end,
+      event_people, event_place, event_reg_date_str,event_reg_date_end,
+      event_content, adm_id, ATCH_FILE_ID)
+      values( event_sqe.nextVal,
+      #{eventType}, #{eventName}, #{eventDateStr}, #{eventDateEnd},
+      #{eventPeople}, #{eventPlace}, #{eventRegDateStr}, #{eventRegDateEnd},
+      #{eventContent},#{adminId},#{atchFileId})
+   </insert>
+
+   <update id="updateEvent" parameterType="kr.or.ddit.vo.EventVO">
+
+      UPDATE event set
+      event_name = #{eventName},
+      event_date_str =#{eventDateStr},
+      event_date_end =#{eventDateEnd},
+      event_people =#{eventPeople} ,
+      event_place=#{eventPlace}, event_reg_date_str=#{eventRegDateStr},
+      event_reg_date_end=#{eventRegDateEnd} ,event_content =#{eventContent},
+      ATCH_FILE_ID=#{atchFileId}
+      where event_no=#{eventNo}
+   </update>
+
+   <delete id="deleteEvent" parameterType="String">
+      delete from event where
+      event_name =#{eventName}
+   </delete>
+
+   <select id="allEvent" resultType="kr.or.ddit.vo.EventVO">
+      select
+      ROW_NUMBER() OVER (ORDER
+      BY event_no DESC) AS eventRow,
+      event_type AS eventType,
+      event_no AS
+      eventNo,
+      event_name AS eventName,
+      event_date_str AS eventDateStr,
+      event_date_end AS eventDateEnd,
+      event_reg_date_str AS eventRegDateStr,
+      event_reg_date_end AS eventRegDateEnd,
+      event_place AS eventPlace,
+      event_people AS eventPeople,
+      ATCH_FILE_ID as atchFileId
+      FROM event
+      ORDER
+      BY event_no DESC
+   </select>
+
+   <select id="libEvent" resultType="kr.or.ddit.vo.EventVO">
+  select event_type as eventType,
+      event_no as eventNo,
+      event_name as eventName,
+      event_date_str as eventDateStr,
+      event_date_end as eventDateEnd,
+      event_reg_date_str as eventRegDateStr,
+      event_reg_date_str as
+      eventRegDateEnd,
+      event_place as eventPlace,
+      event_people as eventPeople
+      from event where event_type = 'library'
+order by event_date_str desc
+   </select>
+
+   <!-- 타입별 분류를 위한 메소드? -->
+   <select id="typeAllEvent" parameterType="String"
+      resultType="kr.or.ddit.vo.EventVO">
+      select ROW_number() over(order by
+      event_no) eventRow,
+      event_type as eventType,
+      event_no as eventNo,
+      event_name as eventName,
+      event_date_str as eventDateStr,
+      event_date_end as eventDateEnd,
+      event_reg_date_str as eventRegDateStr,
+      event_reg_date_str as
+      eventRegDateEnd,
+      event_place as eventPlace,
+      event_people as eventPeople
+      from event where event_type = #{eventType}
+      ORDER BY rownum desc
+   </select>
+
+   <select id="getEvent" resultType="kr.or.ddit.vo.EventVO"
+      resultMap="eventMap">
+
+      select * from event where event_no = #{eventNo}
+
+
+   </select>
+
+
+
+
+   <select id="searchEvent" resultType="kr.or.ddit.vo.EventVO"
+       resultMap="eventMap">
+      select * from event
+      <where>
+         <if test='eventName != null and eventName !=""'>
+            and event_name like '%'|| #{eventName} ||'%'
+         </if>
+         <if test='eventType != null and eventType !=""'>
+            or event_type like '%'|| #{eventType} ||'%'
+         </if>
+
+      </where>
+
+   </select>
+
+
+   <!-- 도서관행사 글 개수 조회 -->
+   <select id="eventCountList" resultType="int">
+      select count(*) from
+      event where event_type = 'library'
+   </select>
+
+
+   <!-- 도서관행사 리스트 출력 -->
+   <select id="eventBoardList" parameterType="map"
+      resultMap="eventMap">
+      select A.* from(
+      select ROWNUM AS RNUM, B.* from(
+      select * from event
+      where event_type = 'library'
+      order by event_date_str desc
+      )B
+      <![CDATA[
+         where ROWNUM <= #{end}
+      )A
+      where A.rnum >= #{start}
+      ]]>
+   </select>
+
+   <!-- 도서관체험 글 개수 조회 -->
+   <select id="fieldstudyCountList" resultType="int">
+      select count(*) from
+      event where event_type = 'fieldstudy'
+   </select>
+
+
+   <!-- 도서관체험 리스트 출력 -->
+   <select id="fieldstudyBoardList" parameterType="map"
+      resultMap="eventMap">
+      select A.* from(
+      select ROWNUM AS RNUM, B.* from(
+      select * from event
+      where event_type = 'fieldstudy'
+      order by event_date_str desc
+      )B
+      <![CDATA[
+         where ROWNUM <= #{end}
+      )A
+      where A.rnum >= #{start}
+      ]]>
+   </select>
+
+   <!-- 영화상영 글 개수 조회 -->
+   <select id="movieCountList" resultType="int">
+      select count(*) from
+      event where event_type = 'movie'
+   </select>
+
+
+   <!-- 영화상영 리스트 출력 -->
+   <select id="movieBoardList" parameterType="map"
+      resultMap="eventMap">
+      select A.* from(
+      select ROWNUM AS RNUM, B.* from(
+      select * from event
+      where event_type = 'movie'
+      order by event_date_str desc
+      )B
+      <![CDATA[
+         where ROWNUM <= #{end}
+      )A
+      where A.rnum >= #{start}
+      ]]>
+   </select>
+
+</mapper>

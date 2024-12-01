@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="member">
+	<resultMap type="kr.or.ddit.member.vo.MemberVO"
+		id="memberMap">
+		<id property="memId" column="MEM_ID" />
+		<result property="memPass" column="MEM_PASS" />
+		<result property="memName" column="MEM_NAME" />
+		<result property="memTel" column="MEM_TEL" />
+		<result property="memEmail" column="MEM_EMAIL" />
+		<result property="memAddr1" column="MEM_ADDR1" />
+		<result property="memAddr2" column="MEM_ADDR2" />
+		<result property="delYn" column="DELYN" />
+		<result property="banYn" column="BANYN" />
+		<result property="warnCnt" column="WARN_CNT" />
+		<result property="adYn" column="AD_YN" />
+		<result property="memPostno" column="MEM_POSTNO" />
+		<result property="memBir" column="MEM_BIR" />
+	</resultMap>
+
+	<insert id="joinMem"
+		parameterType="kr.or.ddit.member.vo.MemberVO">
+		insert into member (
+		mem_id, mem_pass, mem_name, mem_bir,
+		mem_postno, mem_addr1, mem_addr2, mem_tel, mem_email
+		) values (
+		#{memId}, #{memPass}, #{memName}, #{memBir},
+		#{memPostno}, #{memAddr1},
+		#{memAddr2}, #{memTel},#{memEmail}
+		)
+	</insert>
+
+	<select id="loginChk" parameterType="map"
+		resultType="kr.or.ddit.member.vo.MemberVO">
+		SELECT MEM_ID as memId, BANYN, DELYN
+		FROM MEMBER
+		WHERE MEM_ID =
+		#{uId}
+		AND MEM_PASS = #{uPw}
+	</select>
+
+	<select id="findId"
+		parameterType="kr.or.ddit.member.vo.MemberVO" resultType="string">
+		select mem_id
+		from member where MEM_TEL = #{uTel}
+		and MEM_EMAIL = #{uEmail}
+	</select>
+
+
+	<select id="findPw"
+		parameterType="kr.or.ddit.member.vo.MemberVO" resultType="string">
+		select
+		MEM_PASS from member where MEM_ID = #{uId}
+		and MEM_TEL = #{uTel}
+		and
+		MEM_EMAIL = #{uEmail}
+	</select>
+
+	<select id="memInfo" parameterType="string"
+		resultType="kr.or.ddit.member.vo.MemberVO">
+		select MEM_ID as memId,
+				MEM_NAME as memName,
+				MEM_TEL as memTel,
+				MEM_EMAIL as memEmail,
+				MEM_ADDR1 as memAddr1,
+				MEM_ADDR2 as memAddr2,
+				BANYN as banYn,
+				DELYN as delYn,
+				WARN_CNT as warnCnt,
+				AD_YN as adYn, 
+				MEM_POSTNO as memPostno,
+				TO_CHAR(MEM_BIR, 'YYYY-mm-DD') as memBir 
+		from member where mem_id=#{memId}
+	</select>
+
+
+	<update id="updateMember"
+		parameterType="kr.or.ddit.member.vo.MemberVO">
+
+		update member set
+		MEM_PASS= #{memPass}
+		, MEM_TEL =
+		#{memTel}
+		,MEM_EMAIL = #{memEmail}
+		,MEM_POSTNO = #{memPostno}
+		,MEM_ADDR1=#{memAddr1}
+		,MEM_ADDR2 =#{memAddr2}
+		where MEM_ID=#{memId}
+	</update>
+
+	<update id="updatePassword"
+		parameterType="kr.or.ddit.member.vo.MemberVO">
+		update MEMBER set MEM_PASS= #{memPass}
+		where MEM_ID =
+		#{memId}
+	</update>
+
+
+
+	<select id="getAllMember"
+		parameterType="kr.or.ddit.member.vo.MemberVO" resultMap="memberMap">
+		select * from
+		member
+	</select>
+
+	<select id="getBlacklist"
+		parameterType="kr.or.ddit.member.vo.MemberVO" resultMap="memberMap">
+		select * from
+		member where banYn='Y'
+	</select>
+
+	<update id="insertBlacklist" parameterType="String">
+		update member set
+		banyn='Y' where mem_id=#{memId}
+	</update>
+
+	<update id="deleteBlacklist" parameterType="String">
+		update member set
+		banyn='N' where mem_id=#{memId}
+	</update>
+	
+	<update id="resetMemWarn" parameterType="String">
+		update member set warn_cnt=0 where mem_id=#{memId}
+	</update>
+
+	<update id="updateWarn">
+		UPDATE member m
+		SET m.WARN_CNT = m.WARN_CNT + 1,
+		m.BANYN = CASE
+		WHEN m.WARN_CNT + 1 >= 5 THEN 'Y'
+		WHEN EXISTS (
+		SELECT 1
+		FROM rental r
+		WHERE r.MEM_ID = m.MEM_ID
+		AND r.RETURN_YN = 'N'
+		AND
+		(SYSDATE - r.RETURN_DATE) > 365
+		AND r.WARNYN = 'N'
+		) THEN 'Y'
+		ELSE 'N'
+		END
+		WHERE m.MEM_ID IN (
+		SELECT DISTINCT r.MEM_ID
+		FROM rental r
+		WHERE
+		r.RETURN_YN = 'N'
+		AND (SYSDATE - r.RETURN_DATE) > 0
+		AND r.WARNYN = 'N'
+		)
+	</update>
+
+	<update id="resetWarn">
+		UPDATE member m
+		SET m.WARN_CNT = (
+		SELECT COUNT(*)
+		FROM
+		rental r
+		WHERE r.MEM_ID = m.MEM_ID
+		AND r.RETURN_YN = 'N'
+		AND (SYSDATE -
+		r.RETURN_DATE) > 0
+		)
+		WHERE TO_CHAR(SYSDATE, 'YYYY') > TO_CHAR(SYSDATE -
+		1, 'YYYY')
+	</update>
+
+	<select id="getRevMemList" parameterType="String"
+		resultMap="memberMap">
+		SELECT * FROM MEMBER m JOIN RESERVATION r ON m.MEM_ID =
+		r.MEM_ID WHERE
+		r.BOOK_ID = #{bookId}
+	</select>
+
+	<update id="plusMemWarn" parameterType="String">
+    UPDATE MEMBER 
+    SET WARN_CNT = WARN_CNT + 1,
+        banyn = CASE 
+                    WHEN WARN_CNT + 1 >= 5 THEN 'Y'
+                    ELSE banyn 
+                END
+    WHERE MEM_ID = #{memId}
+</update>
+
+	<update id="minusMemWarn" parameterType="String">
+		UPDATE MEMBER SET
+		WARN_CNT = WARN_CNT - 1 WHERE MEM_ID = #{memId}
+	</update>
+	
+	
+	<update id="deleteMember" parameterType="String">
+		update member set delyn='Y' where mem_id= #{memId}
+		
+	
+	</update>
+	
+	
+	<!-- 전체 글 갯수 조회 -->
+  	<select id="countList" resultType="int">
+  		select COUNT(*) from member where mem_id != 'b1a4'
+  	</select>
+
+
+	<!-- 페이지 별 리스트 출력 -->
+  	<select id="boardList" parameterType="map" resultType="kr.or.ddit.member.vo.MemberVO">
+  		select A.* from(
+  			select ROWNUM AS RNUM, B.* from(
+  				select  MEM_ID as memId,
+  						MEM_NAME as memName,
+						MEM_TEL as memTel,
+						MEM_EMAIL as memEmail,
+						MEM_ADDR1 as memAddr1,
+						MEM_ADDR2 as memAddr2,
+						BANYN as banYn,
+						DELYN as delYn,
+						WARN_CNT as warnCnt,
+						AD_YN as adYn, 
+						MEM_POSTNO as memPostno,
+						TO_CHAR(MEM_BIR, 'YYYY-mm-DD') as memBir
+						from member  where mem_id != 'b1a4'
+				order by MEM_ID
+			)B
+		<![CDATA[
+			where ROWNUM <= #{end}
+		)A
+		where A.rnum >= #{start}
+		]]>
+  	</select>
+  	
+  	  <!-- 전체 블랙리스트 회원수 조회 -->
+     <select id="blacklistCountList" resultType="int">
+        select COUNT(*) from
+      member where banYn='Y'
+     </select>
+
+
+	 <!-- 페이지 별 블랙리스트 출력 -->
+     <select id="blacklistBoardList" parameterType="map" resultType="kr.or.ddit.member.vo.MemberVO" >
+        select A.* from(
+           select ROWNUM AS RNUM, B.* from(
+               select  MEM_ID as memId,
+  						MEM_NAME as memName,
+						MEM_TEL as memTel,
+						MEM_EMAIL as memEmail,
+						MEM_ADDR1 as memAddr1,
+						MEM_ADDR2 as memAddr2,
+						BANYN as banYn,
+						DELYN as delYn,
+						WARN_CNT as warnCnt,
+						AD_YN as adYn, 
+						MEM_POSTNO as memPostno,
+						TO_CHAR(MEM_BIR, 'YYYY-mm-DD') as memBir
+              from member where banYn='Y'
+            order by MEM_ID
+         )B
+      <![CDATA[
+         where ROWNUM <= #{end}
+      )A
+      where A.rnum >= #{start}
+      ]]>
+     </select>
+
+</mapper>
+ 

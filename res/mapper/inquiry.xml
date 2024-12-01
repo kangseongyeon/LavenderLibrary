@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="inquiry">
+	<resultMap type="inquiryVO" id="inquiryMap">
+   		<id property="inqNo" column="INQ_NO" />
+    	<result property="inqCategoryCode" column="INQ_CATEGORY_CODE"/>
+    	<result property="inqTitle" column="INQ_TITLE"/>
+    	<result property="inqDate" column="INQ_DATE"/> 
+    	<result property="inqContent" column="INQ_CONTENT"/> 
+    	<result property="memId" column="MEM_ID"/> 
+    	<result property="inqStatus" column="INQ_STATUS"/>
+	</resultMap>
+	
+	<insert id = "insertInquiry"
+		parameterType="inquiryVO">
+		INSERT INTO INQUIRY (INQ_NO, INQ_CATEGORY_CODE, INQ_TITLE, INQ_CONTENT, MEM_ID)
+		VALUES ((select nvl(max(INQ_NO)+1, 1) from inquiry), #{inqCategoryCode}, #{inqTitle}, #{inqContent}, #{memId})
+	</insert>
+	
+	<update id="updateInquiry"
+		parameterType="inquiryVO" >
+		UPDATE INQUIRY
+		SET INQ_CATEGORY_CODE = #{inqCategoryCode},
+    		INQ_TITLE =  #{inqTitle},
+    		INQ_CONTENT = #{inqContent}
+		WHERE INQ_NO = #{inqNo}
+	</update>
+	
+	
+	<delete id = "deleteInquiry"
+		parameterType="inquiryVO">
+		delete from INQUIRY
+		where inq_no = #{inqNo}
+	</delete>
+
+
+	<select id="selectAllInquiry"
+		resultType="inquiryVO" resultMap="inquiryMap">
+		select *
+		from INQUIRY
+		order by inq_no
+	</select>
+	
+	
+	<select id = "checkInquiry" resultType="int">
+		select count (*) as cnt
+		from INQUIRY
+		where inq_no = #{inqNo}
+	</select>
+
+
+	<select id="getInquiry"
+    	resultType="inquiryVO" resultMap="inquiryMap">
+    	SELECT
+        	 i.INQ_NO,
+         	i.INQ_TITLE,
+         	i.INQ_DATE,
+         	i.INQ_CONTENT,
+         	i.MEM_ID,
+         	i.INQ_CATEGORY_CODE,
+         	c.CATEGORY_NAME,
+         	m.MEM_NAME
+    	FROM INQUIRY i
+    	JOIN INQ_CATEGORY c ON i.INQ_CATEGORY_CODE = c.INQ_CATEGORY_CODE
+    	JOIN MEMBER m ON i.MEM_ID = m.MEM_ID
+    	WHERE i.inq_no  = #{inqNo}
+	</select>
+	
+	<select id="getInquiryList" resultType="InquiryVO">
+         SELECT 
+        	i.inq_no AS inqNo,
+	        i.inq_category_code AS inqCategoryCode,
+	        i.inq_title AS inqTitle,
+	        i.mem_id AS memId,
+	        i.inq_date AS inqDate,
+	        CASE 
+	            WHEN EXISTS (SELECT 1 FROM ANSWER a WHERE a.inq_no = i.inq_no) THEN '진행완료'
+	            ELSE '접수중'
+	        END AS inqStatus
+	    FROM INQUIRY i
+	    ORDER BY i.inq_no
+    </select>
+	
+
+	<select id = "searchInquiry"
+		resultType="inquiryVO" >
+        SELECT 
+        	i.inq_no AS inqNo,
+	        i.inq_category_code AS inqCategoryCode,
+	        i.inq_title AS inqTitle,
+	        i.mem_id AS memId,
+	        i.inq_date AS inqDate,
+	        CASE 
+	            WHEN EXISTS (SELECT 1 FROM ANSWER a WHERE a.inq_no = i.inq_no) THEN '진행완료'
+	            ELSE '접수중'
+	        END AS inqStatus
+	    FROM INQUIRY i
+		<where>
+			<if test = 'inqCategoryCode != null and inqCategoryCode != ""'>
+				inq_category_code like '%' ||  #{inqCategoryCode} || '%' 
+			</if>
+			
+			<if test = 'inqTitle != null and inqTitle != ""'>
+				or inq_title like '%' ||  #{inqTitle} || '%' 
+			</if>
+			
+			<if test = 'memId != null and memId != ""'>
+				or mem_id like '%' ||  #{memId} || '%' 
+			</if>
+		</where>
+		</select>
+		
+		
+		
+		
+	<!-- 전체 글 갯수 조회 -->
+  	<select id="countList" resultType="int">
+  		SELECT COUNT(*) FROM INQUIRY
+  	</select>
+
+
+	<!-- 페이지 별 리스트 출력 -->
+  	<select id="boardList" parameterType="map" resultType="inquiryVO">
+    SELECT A.* FROM (
+        SELECT ROWNUM AS RNUM, B.* FROM (
+            SELECT 
+                i.inq_no AS inqNo,
+                i.inq_category_code AS inqCategoryCode,
+                i.inq_title AS inqTitle,
+                i.mem_id AS memId,
+                i.inq_date AS inqDate,
+                CASE 
+                    WHEN EXISTS (SELECT 1 FROM ANSWER a WHERE a.inq_no = i.inq_no) THEN '진행완료'
+                    ELSE '접수중'
+                END AS inqStatus
+            FROM INQUIRY i
+            ORDER BY i.inq_no DESC
+        ) B
+        <![CDATA[
+        WHERE ROWNUM <= #{end}
+    ) A
+    WHERE A.rnum >= #{start}
+    ]]>
+</select>
+</mapper>

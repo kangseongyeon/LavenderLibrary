@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="news">
+	<resultMap type="newsVO" id="newsMap">
+		<id property="newsNo" column="NEWS_NO" />
+		<result property="newsTitle" column="NEWS_TITLE"/>
+		<result property="newsContent" column="NEWS_CONTENT"/>
+		<result property="newsDate" column="NEWS_DATE"/> 
+		<result property="admId" column="ADM_ID"/> 
+		<result property="atchFileId" column="ATCH_FILE_ID"/>
+	</resultMap>
+	
+	<insert id="insertNews"
+		parameterType="newsVO">
+		insert into news (NEWS_NO, NEWS_TITLE, NEWS_CONTENT, ADM_ID, NEWS_DATE, ATCH_FILE_ID)
+		VALUES ((select nvl(max(NEWS_NO)+1, 1) from news), #{newsTitle}, #{newsContent}, 'b1a4', sysdate ,#{atchFileId})
+	</insert>
+	
+	<update id="updateNews"
+		parameterType="newsVO">
+		update news
+		set news_title = #{newsTitle},
+			news_content = #{newsContent},
+			atch_file_id = #{atchFileId}
+		WHERE NEWS_NO = #{newsNo}
+	</update>
+	
+	
+	<delete id = "deleteNews"
+		parameterType="String">
+		delete from news
+		where news_no = #{newsNo}
+	</delete>
+
+
+	<select id="selectAllNews"
+		resultType="newsVO" resultMap="newsMap">
+		select *
+		from news
+		order by news_no
+	</select>
+	
+	
+	<select id = "checkNews" resultType="int">
+		select count (*) as cnt
+		from news
+		where news_No = #{newsNo}
+	</select>
+
+
+	<select id = "getNews"
+		resultType="newsVO" resultMap="newsMap">
+		select *
+		from news
+		where news_No = #{newsNo}
+	</select>
+
+
+	<select id = "searchNews"
+		resultType="newsVO" resultMap="newsMap">
+		select *
+		from news
+		<where>
+			<if test = 'newsTitle != null and newsTitle != ""'>
+				news_title like '%' || #{newsTitle} || '%' 
+			</if>
+		</where>
+		order by news_no
+		</select>
+	
+	<!-- 전체 글 갯수 조회 -->
+  	<select id="countList" resultType="int">
+  		SELECT COUNT(*) FROM news
+  	</select>
+
+
+	<!-- 페이지 별 리스트 출력 -->
+  	<select id="boardList" parameterType="map" resultMap="newsMap" >
+  		select A.* from(
+  			select ROWNUM AS RNUM, B.* from(
+  				select * from news
+				order by news_no DESC
+			)B
+		<![CDATA[
+			where ROWNUM <= #{end}
+		)A
+		where A.rnum >= #{start}
+		]]>
+  	</select>
+
+</mapper>

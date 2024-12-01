@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="report">
+	
+ 
+  <select id="getAllReports" resultMap="bookReportMap" >
+  select * from book_report
+  </select>
+  
+  
+  <insert id="insertReport" parameterType="bookReportVO">
+  	INSERT INTO book_report(rpt_no, rpt_title, rpt_content, mem_id,book_title,atch_file_id ) 
+    VALUES ((SELECT NVL(MAX(rpt_no),0)+1 FROM book_report) , #{rptTitle}, #{rptContent}, #{memId}, #{bookTitle},#{atchFileId})
+  
+  </insert>
+  
+  
+  <select id="detailReport" resultMap="bookReportMap">
+  
+  	select * from book_report where rpt_no=#{rptNo}
+  </select>
+  
+  
+  <update id="updateReport" parameterType="bookReportVO">
+    update book_report set rpt_title=#{rptTitle}, rpt_content=#{rptContent}, atch_file_id=#{atchFileId}
+	where rpt_no=#{rptNo}
+  
+  </update>
+  
+  
+  <delete id="deleteReport" parameterType="String">
+  delete from book_report where rpt_no=#{rptNo}
+  
+  </delete>
+  
+  
+  <select id="searchTitleReport" resultMap="bookReportMap">
+  select * from book_report where rpt_title like '%'|| #{rptTitle} ||'%'
+  
+  </select>
+  
+  
+  <select id="searchContentReport" resultMap="bookReportMap">
+   select * from book_report where rpt_content like '%'|| #{rptContent} ||'%'
+  
+  </select>
+  
+  
+  <select id="searchMemReport" resultMap="bookReportMap">
+  select * from book_report where mem_id=#{memId}
+  
+  </select>
+  
+  
+  <select id="searchBookReport" resultMap="bookReportMap">
+  select * from book_report where book_title=#{bookTitle}
+  
+  </select>
+  
+
+	<!-- 전체 글 갯수 조회 -->
+  	<select id="countList" resultType="int">
+  		SELECT COUNT(*) FROM book_report
+  	</select>
+
+
+	<!-- 페이지 별 리스트 출력 -->
+  	<select id="boardList" parameterType="map" resultMap="bookReportMap" >
+  		select A.* from(
+  			select ROWNUM AS RNUM, B.* from(
+  				select * from book_report
+				order by rpt_no DESC
+			)B
+		<![CDATA[
+			where ROWNUM <= #{end}
+		)A
+		where A.rnum >= #{start}
+		]]>
+  	</select>
+  
+  
+  
+	
+	
+	
+	<resultMap type="bookReportVO" id="bookReportMap">
+		<id property="rptNo" column="RPT_NO"/>
+		<result property="rptTitle" column="RPT_TITLE"/>
+		<result property="rptDate" column="RPT_DATE"/>
+		<result property="rptContent" column="RPT_CONTENT"/>
+		<result property="memId" column="MEM_ID"/>
+		<result property="bookTitle" column="BOOK_TITLE"/>
+		<result property="atchFileId" column="ATCH_FILE_ID"/>
+	
+	
+	</resultMap>	
+
+
+</mapper>

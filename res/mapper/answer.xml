@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="answer">
+    <resultMap type="answerVO" id="answerMap">
+        <id property="inqNo" column="INQ_NO" />
+        <result property="admId" column="ADM_ID"/>
+        <result property="answerTitle" column="ANSWER_TITLE"/>
+        <result property="answerContent" column="ANSWER_CONTENT"/> 
+        <result property="answerDate" column="ANSWER_DATE"/> 
+    </resultMap>
+    
+    <select id="selectAllAnswer" parameterType="int" resultType="answerVO">
+        select *
+        from answer
+        where inq_no = #{inq_no}
+    </select> 
+
+    <insert id="insertAnswer" parameterType="answerVO">
+        insert into answer (adm_id, inq_no, answer_title, answer_content, answer_date)
+        values ('b1a4', #{inqNo}, #{answerTitle}, #{answerContent}, sysdate)
+    </insert>
+    
+    <delete id="deleteAnswer" parameterType="String">
+        delete from answer 
+        where inq_no = #{inqNo}
+    </delete>
+
+    <update id="updateAnswer" parameterType="answerVO">
+        update answer
+        set answer_title = #{answerTitle},
+            answer_content = #{answerContent}
+        where inq_no = #{inqNo}
+    </update>
+    
+    <select id="getAnswer" resultType="answerVO" resultMap="answerMap">
+        select *
+        from answer
+        where inq_no = #{inqNo}    
+    </select>
+    
+    <select id="getAnswersByInquiry" resultType="answerVO" resultMap="answerMap">
+    	select *
+        from answer
+        where inq_no = #{inqNo}
+    </select>
+</mapper>
+

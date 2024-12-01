@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace = "faq">
+<resultMap type="faqVO" id="faqMap">
+		<id property="faqNo" column="FAQ_NO" />
+		<result property="faqQuestion" column="FAQ_QUESTION"/>
+		<result property="faqAnswer" column="FAQ_ANSWER"/>
+		<result property="faqDate" column="FAQ_DATE"/> 
+		<result property="admId" column="ADM_ID"/> 
+	</resultMap>
+	
+	<insert id = "insertFaq"
+		parameterType="faqVO">
+		insert into faq (faq_no, faq_question, faq_answer, faq_date, adm_id)
+		values ((select nvl(max(faq_no)+1, 1) from faq), #{faqQuestion}, #{faqAnswer}, SYSDATE, 'b1a4')
+	</insert>
+	
+	<update id = "updateFaq"
+		parameterType="faqVO">
+		update faq
+		set faq_question = #{faqQuestion}, 
+    		faq_answer = #{faqAnswer}
+		WHERE faq_no = #{faqNo}
+	</update>
+	
+	<delete id = "deleteFaq"
+		parameterType="faqVO">
+		delete from faq
+		where faq_no = #{faqNo}
+	</delete>
+	
+	<select id="selectAllFaq"
+		resultType="faqVO" resultMap="faqMap">
+		select *
+		from faq
+		order by faq_no
+	</select>
+	
+	<select id="checkFaq" resultType="String">
+		select count (*) as cnt
+		from faq
+		where faq_no = #{faqNo}
+	</select>
+	
+	<select id="getFaq"
+		resultType="faqVO" resultMap="faqMap">
+		select *
+		from faq
+		where faq_No = #{faqNo}
+	</select>
+		
+	<select id = "searchFaq"
+		resultType="faqVO" resultMap="faqMap">
+		select *
+		from faq
+		<where>
+			<if test = 'faqQuestion != null and faqQuestion = ""'>
+				faq_question like '%' ||  #{faqQuestion} || '%' 
+			</if>
+			<if test = 'faqAnswer != null and faqAnswer = ""'>
+				or faq_answer like '%' ||  #{faqAnswer} || '%' 
+			</if>
+	</where>
+	</select>	
+	
+</mapper>

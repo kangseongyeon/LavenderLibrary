@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+  <configuration>
+  
+  	<properties resource="db.properties"/>
+  	
+  	<settings>
+  		<!-- 
+  			데이터 등록시 해당 속성값이 존재하지 않으면 부적합한 열 유형 :1111 예외 발생함
+  			이 경우 해당타입을 명시적으로 알려주던지 아래와 같이 NULL값에 대해 특정값으로 설정이 가능하다.
+  		 -->
+  		<setting name="jdbcTypeForNull" value="NULL"/>
+  	</settings>
+  	
+  	<typeAliases>
+		<typeAlias type="kr.or.ddit.vo.BookVideoVO" alias="BookVideoVO" />
+		<typeAlias type="kr.or.ddit.vo.NewsVO" alias="newsVO" />
+		<typeAlias type="kr.or.ddit.vo.NoticeVO" alias="noticeVO" />
+		<typeAlias type="kr.or.ddit.comm.vo.AtchFileVO" alias="atchFileVO"/>
+  		<typeAlias type="kr.or.ddit.comm.vo.AtchFileDetailVO" alias="atchFileDetailVO"/>
+  		<typeAlias type="kr.or.ddit.contest.vo.BookReportVO" alias="bookReportVO"/>
+  		<typeAlias type="kr.or.ddit.contest.vo.OneSentenceVO" alias="SentenceVO"/>
+  		<typeAlias type="kr.or.ddit.contest.vo.DebateVO" alias="DebateVO"/>
+  		<typeAlias type="kr.or.ddit.vo.FaqVO" alias="faqVO" /> 
+		<typeAlias type="kr.or.ddit.vo.InquiryVO" alias="inquiryVO" />
+  		<typeAlias type="kr.or.ddit.vo.InqCategoryVO" alias="inqCategoryVO" />
+  		<typeAlias type="kr.or.ddit.vo.EventVO" alias="eventVO" />
+  		<typeAlias type="kr.or.ddit.vo.AnswerVO" alias="answerVO" />
+
+  		
+  		
+	</typeAliases>
+  
+  	<environments default="dev">
+  		<environment id="dev">
+  			<transactionManager type="JDBC" />
+  			<dataSource type="POOLED">
+  				<property name="driver" value="${driver}"/>
+  				<property name="url" value="${url}"/>
+  				<property name="username" value="${username}"/>
+  				<property name="password" value="${password}"/>
+  				<property name="poolMaximumActiveConnections" value="2"/> <!-- 활성화된 최대 커넥션 수 -->
+				<property name="poolMaximumIdleConnections" value="2"/> <!-- 유휴상태에서 최대 커넥션 수 -->
+  			</dataSource>
+  		</environment>
+  		
+  	</environments>
+  	
+  	<mappers>
+  		<mapper resource="mapper/book.xml"/>
+  		<mapper resource="mapper/bookVideo.xml" />
+  		<mapper resource="mapper/news.xml" />
+  		<mapper resource="mapper/notice.xml" />
+  		<mapper resource="mapper/atchFile.xml" />
+  		<mapper resource="mapper/report.xml" />
+  		<mapper resource="mapper/sentence.xml" />
+  		<mapper resource="mapper/debate.xml" />
+  		<mapper resource="mapper/member.xml"/>
+  		<mapper resource="mapper/faq.xml" /> 
+		<mapper resource="mapper/inquiry.xml" /> 
+		<mapper resource="mapper/inqCategoryMapper.xml" />
+		<mapper resource="mapper/adminEvent.xml" />
+		<mapper resource="mapper/answer.xml" /> 
+		<mapper resource="mapper/calender.xml" /> 
+  		 
+  	</mappers>
+  
+  </configuration>

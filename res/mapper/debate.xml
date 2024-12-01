@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="debate">
+	
+ 
+  <select id="getAllDebates" resultMap="DebateMap" >
+	select * from debate  
+  </select>
+  
+  
+  
+  <insert id="insertDebate" parameterType="DebateVO">
+ 		insert INTO debate 
+		(
+        DEBATE_NO,
+        BOOK_TITLE,
+        DEBATE_TOPIC,
+        ADM_ID,
+        DEBATE_CONTENT
+		) 
+		values 
+		(
+		(SELECT NVL(MAX(DEBATE_NO),0)+1 FROM debate),
+        #{bookTitle},
+        #{debateTopic},
+        'b1a4',
+        #{debateContent}
+        )
+  </insert>
+  
+  
+  
+  <select id="detailDebate" resultMap="DebateMap">
+  	select * from debate where DEBATE_NO=#{debateNo}
+  </select>
+  
+  
+  <update id="updateDebate" parameterType="DebateVO">
+	update debate set DEBATE_TOPIC=#{debateTopic}
+    ,BOOK_TITLE=#{bookTitle}
+    ,DEBATE_CONTENT=#{debateContent}
+	where DEBATE_NO=#{debateNo}
+  </update>
+  
+  
+  <delete id="deleteDebate" parameterType="String">
+	 delete from debate where DEBATE_NO=#{debateNo}  
+  </delete>
+  
+  
+  <select id="searchTopicDebate" resultMap="DebateMap">
+	select * from debate where DEBATE_TOPIC like '%'|| #{debateTopic} ||'%'
+  </select>
+  
+  
+  
+  <select id="searchContentDebate" resultMap="DebateMap">
+	select * from debate where DEBATE_CONTENT like '%'|| #{debateContent} ||'%'  
+  </select>
+  
+  
+  
+  <select id="searchBookDebate" resultMap="DebateMap">
+  select * from debate where BOOK_TITLE=#{bookTitle}
+  
+  </select>
+  
+  
+	<!-- 전체 글 갯수 조회 -->
+  	<select id="countList" resultType="int">
+  		SELECT COUNT(*) FROM debate
+  	</select>
+
+
+	<!-- 페이지 별 리스트 출력 -->
+  	<select id="boardList" parameterType="map" resultMap="DebateMap" >
+  		select A.* from(
+  			select ROWNUM AS RNUM, B.* from(
+  				select * from debate
+				order by DEBATE_NO DESC
+			)B
+		<![CDATA[
+			where ROWNUM <= #{end}
+		)A
+		where A.rnum >= #{start}
+		]]>
+  	</select>
+  
+
+  
+	
+	
+	<resultMap type="DebateVO" id="DebateMap">
+		
+		<id property="debateNo" column="DEBATE_NO"/>
+		<result property="bookTitle" column="BOOK_TITLE"/>
+		<result property="debateTopic" column="DEBATE_TOPIC"/>
+		<result property="debateDate" column="DEBATE_DATE"/>
+		<result property="admId" column="ADM_ID"/>
+		<result property="debateContent" column="DEBATE_CONTENT"/>
+	
+	</resultMap>	
+
+
+</mapper>

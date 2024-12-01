@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="atchFile">
+
+	<insert id="insertAtchFile" parameterType="atchFileVO">
+	<selectKey keyProperty="atchFileId" resultType="long" order="BEFORE" >
+			select ATCH_FILE_SEQ.nextval from dual
+		</selectKey>
+		
+		insert into atch_file
+		(ATCH_FILE_ID, 
+		CREATE_DATE, 
+		USE_AT)
+		values (
+		#{atchFileId},
+		sysdate,
+		'Y' 
+		)
+	
+	
+	</insert>
+	
+		<insert id="insertAtchFileDetail">
+	
+		insert into atch_file_detail (
+		    FILE_SN,
+		ATCH_FILE_ID,
+		FILE_STRE_COURS,
+		STRE_FILE_NM,
+		ORIGNL_FILE_NM,
+		FILE_EXTSN,
+		FILE_CONTENT,
+		FILE_SIZE
+		) values(
+		#{fileSn},
+		#{atchFileId},
+		#{fileStreCours},
+		#{streFileNm},
+		#{orignlFileNm},
+		#{fileExtsn},
+		#{fileContent},
+		#{fileSize}
+		)
+	
+	</insert>
+	
+	
+	
+	<select id="getAtchFile" resultMap="atchFileMap">
+	
+		select * from atch_file a, atch_file_detail b
+		where a.atch_file_id = b.atch_file_id
+			and a.atch_file_id = #{atchFileId}
+		
+	</select>
+	
+	
+	
+	<select id="getAtchFileDetail" resultMap="atchFileDetailMap">
+	
+		select * from atch_file_detail
+		where atch_file_id = #{atchFileId}
+			and file_sn = #{fileSn}
+		
+	</select>
+ 
+
+  
+  
+  
+	
+	
+	<resultMap type="atchFileVO" id="atchFileMap">
+		<id property="atchFileId" column="ATCH_FILE_ID"/>
+		<result property="createDate" column="CREATE_DATE"/>
+		<result property="useAt" column="USE_AT"/>
+		<collection property="atchFileDetailList" resultMap="atchFileDetailMap" />
+	</resultMap>	
+	
+	
+	<resultMap type="atchFileDetailVO" id="atchFileDetailMap">
+		<id property="fileSn" column="FILE_SN"/>
+		<id property="atchFileId" column="ATCH_FILE_ID"/>
+		<result property="fileStreCours" column="FILE_STRE_COURS"/>
+		<result property="streFileNm" column="STRE_FILE_NM"/>
+		<result property="orignlFileNm" column="ORIGNL_FILE_NM"/>
+		<result property="fileExtsn" column="FILE_EXTSN"/>
+		<result property="fileContent" column="FILE_CONTENT"/>
+		<result property="fileSize" column="FILE_SIZE"/>
+	</resultMap>	
+	
+	
+
+	
+	
+
+
+</mapper>

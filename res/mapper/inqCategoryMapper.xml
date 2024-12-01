@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="inqCategory">
+    <resultMap id="categoryMap" type="inqCategoryVO">
+        <id property="inqCategoryCode" column="INQ_CATEGORY_CODE"/>
+        <result property="categoryName" column="CATEGORY_NAME"/>
+    </resultMap>
+    
+    <select id="selectAllCategories" resultMap="categoryMap">
+        SELECT INQ_CATEGORY_CODE, CATEGORY_NAME
+        FROM INQ_CATEGORY
+    </select>
+</mapper>

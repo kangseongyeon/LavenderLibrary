@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="calenderEvent">
+
+ 	<resultMap id="EventResultMap" type="kr.or.ddit.vo.EventVO">
+        <id property="eventNo" column="event_no"/>
+        <result property="eventType" column="event_type"/>
+        <result property="eventName" column="event_name"/>
+        <result property="eventDateStr" column="event_date_str"/>
+        <result property="eventDateEnd" column="event_date_end"/>
+        <result property="eventRegDateStr" column="event_reg_date_str"/>
+        <result property="eventRegDateEnd" column="event_reg_date_end"/>
+    </resultMap>
+		<!-- 이번달  -->
+	<select id="thisMonthEvent" parameterType="kr.or.ddit.vo.CalenderVO" resultMap="EventResultMap">
+		select event_no, event_type, event_name, event_date_str, event_date_end, event_reg_date_str, event_reg_date_end
+		from event 
+		where event_date_str BETWEEN TO_DATE(#{year} || '-' || #{month} || '-01', 'YYYY-MM-DD') 		
+                         AND LAST_DAY(TO_DATE(#{year} || '-' || #{month} || '-01', 'YYYY-MM-DD')) 
+                         or
+                         event_date_end BETWEEN TO_DATE(#{year} || '-' || #{month} || '-01', 'YYYY-MM-DD') 		
+                         AND LAST_DAY(TO_DATE(#{year} || '-' || #{month} || '-01', 'YYYY-MM-DD')) 
+	</select>
+	
+	<!-- 다음달 -->
+	
+	<!-- 이전달 -->
+</mapper>

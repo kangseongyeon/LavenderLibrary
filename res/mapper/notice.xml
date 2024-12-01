@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="notice">
+	<resultMap type="noticeVO" id="noticeMap">
+		<id property="noticeNo" column="NOTICE_NO" />
+		<result property="noticeTitle" column="NOTICE_TITLE"/>
+		<result property="noticeContent" column="NOTICE_CONTENT"/>
+		<result property="noticeDate" column="NOTICE_DATE"/> 
+		<result property="admId" column="ADM_ID"/> 
+	</resultMap>
+	
+	<insert id="insertNotice"
+		parameterType="noticeVO">
+
+		insert into notice (notice_no, notice_title, notice_date, notice_content, adm_id)
+		values ((SELECT NVL(MAX(notice_no)+1,1)FROM notice), #{noticeTitle}, sysdate, #{noticeContent}, 'b1a4')
+
+	</insert>
+	
+	<update id = "updateNotice"
+		parameterType="noticeVO">
+		
+		update notice
+    	set notice_title = #{noticeTitle},
+        	notice_content = #{noticeContent}
+		where notice_no = #{noticeNo}
+		
+	</update>
+	
+<!-- 	<delete id = "deleteNotice"
+		parameterType="noticeVO"> -->
+			<delete id = "deleteNotice"
+		parameterType="String">
+		
+		delete from notice
+		where notice_no = #{noticeNo} 
+		
+	</delete>
+	
+	<select id="selectAllNotice"
+		resultType="noticeVO" resultMap="noticeMap">
+		select *
+		from notice
+		order by pin desc, notice_no asc
+	</select>
+
+	<select id="selectPinNotice"
+		resultType="noticeVO" resultMap="noticeMap">
+		select *
+		from notice
+		where pin=1 
+		order by pin desc, notice_no asc
+	</select>
+<!-- 		where pin=1 공지글만 보려고추가함 -->
+	
+	
+	<select id="checkNotice" resultType="int">
+		select count (*) as cnt
+		from notice
+		where notice_no = #{noticeNo}
+	</select>
+	
+	
+	<select id="getNotice"
+		resultType="noticeVO" resultMap="noticeMap">
+		select *
+		from notice
+		where notice_no = #{noticeNo}
+	</select>
+	
+	<select id = "searchNotice"
+		resultType="noticeVO" resultMap="noticeMap">
+		select *
+		from notice
+		<where>
+			<if test = 'noticeTitle != null and noticeTitle !=""'>
+				notice_title LIKE '%'||  #{noticeTitle} ||'%'
+			</if> 
+		</where>
+		order by notice_no
+	</select>
+	
+	
+		<!-- 전체 글 갯수 조회 -->
+  	<select id="countList" resultType="int">
+  		SELECT COUNT(*) FROM notice
+  	</select>
+
+
+	<!-- 페이지 별 리스트 출력 -->
+  	<select id="boardList" parameterType="map" resultMap="noticeMap" >
+  		select A.* from(
+  			select ROWNUM AS RNUM, B.* from(
+  				select * from notice
+				order by notice_no DESC
+			)B
+		<![CDATA[
+			where ROWNUM <= #{end}
+		)A
+		where A.rnum >= #{start}
+		]]>
+  	</select>
+</mapper>
